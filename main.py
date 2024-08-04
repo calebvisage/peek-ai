@@ -16,13 +16,14 @@ load_dotenv()
 # Configuration
 SCREENSHOT_DIR = './screenshots'
 SCREENSHOT_FORMAT = 'PNG'
+DEFAULT_QUERY = 'Describe everything in this image. List every open window if applicable. List the number of visible windows. Briefly describe what the user is doing for each open window. Do not describe the contents of the windows unless asked to do so. Censor sensitive information.'
 
 # Configure OpenAI API
 API_KEY = os.getenv('OPENAI_API_KEY')
 MODELS = ['gpt-4o-mini', 'gpt-4o']
 MODEL = MODELS[0]
 TEMPERATURE = 0.5
-SYSTEM_PROMPT = 'You are a helpful assistant. You answer queries based on a given screenshot image. Always assume the user is querying about the image.'
+SYSTEM_PROMPT = '''You are a helpful assistant. You answer queries based on a given screenshot image. Always assume the user is querying about the image. Use direct personal language, so instead of "the user" use "you", instead of "the image" use "your desktop". Be concise.'''
 MAX_TOKENS = 300
 
 # Initialize OpenAI client
@@ -99,6 +100,7 @@ class QueryDialog(tk.Toplevel):
 
     def on_submit(self):
         query = self.entry.get()
+        query = query if query else DEFAULT_QUERY
         if query:
             self.withdraw() # Hide the dialog
             self.update_idletasks() # Update the window to hide it before taking the screenshot
