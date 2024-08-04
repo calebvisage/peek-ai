@@ -1,6 +1,10 @@
 # peek.ai
 
+## What is this?
+Uses the openai api to analyse your desktop by providing it with a screenshot and a prompt.
+
 ## Getting Started
+
 1. Install the dependencies
 ```bash
 pip install -r requirements.txt
@@ -13,3 +17,8 @@ OPENAI_API_KEY=<your_openai_api_key>
 ```bash
 python main.py
 ```
+
+## TODO
+- [ ] Improve the UI
+- [ ] Improve stability
+- [ ] Improve configuration
