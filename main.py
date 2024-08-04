@@ -8,32 +8,43 @@ import sys
 import signal
 from openai import OpenAI
 from time import sleep
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Configuration
+SCREENSHOT_DIR = './screenshots'
+SCREENSHOT_FORMAT = 'PNG'
 
 # Configure OpenAI API
-API_KEY = 'your-api-key'
+API_KEY = os.getenv('OPENAI_API_KEY')
 MODELS = ['gpt-4o-mini', 'gpt-4o']
 MODEL = MODELS[0]
 TEMPERATURE = 0.5
 SYSTEM_PROMPT = 'You are a helpful assistant. You answer queries based on a given screenshot image. Always assume the user is querying about the image.'
 MAX_TOKENS = 300
 
+# Initialize OpenAI client
 client = OpenAI(api_key=API_KEY)
 
+# Signal handler to stop the script on Ctrl+C
 def signal_handler(sig, frame):
     print('Interrupt received, stopping the script.')
     root.quit()
     sys.exit(0)
 
+# Capture the screen, save it and return the image as a base64 string
 def capture_screen():
     screenshot = ImageGrab.grab()
-    screenshots_dir = './screenshots'
+    screenshots_dir = SCREENSHOT_DIR
     if not os.path.exists(screenshots_dir):
         os.makedirs(screenshots_dir)
     latest_screenshot = max([int(f.split('.')[0]) for f in os.listdir(screenshots_dir)]) if os.listdir(screenshots_dir) else 0
-    screenshot_path = os.path.join(screenshots_dir, f'{latest_screenshot + 1}.png')
-    screenshot.save(screenshot_path, format="PNG")
+    screenshot_path = os.path.join(screenshots_dir, f'{latest_screenshot + 1}.{SCREENSHOT_FORMAT.lower()}')
+    screenshot.save(screenshot_path, format=SCREENSHOT_FORMAT)
     buffer = BytesIO()
-    screenshot.save(buffer, format="PNG")
+    screenshot.save(buffer, format=SCREENSHOT_FORMAT)
     img_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
     return img_str
 
@@ -46,7 +57,7 @@ def ask_openai(query, image_data):
                 {"type": "text", "text": query},
                 {
                     "type": "image_url",
-                    "image_url": {"url": f"data:image/png;base64,{image_data}"}
+                    "image_url": {"url": f"data:image/{SCREENSHOT_FORMAT.lower()};base64,{image_data}"}
                 }
             ]},
         ],
@@ -58,7 +69,7 @@ def ask_openai(query, image_data):
 class QueryDialog(tk.Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
-        self.title("AIVision Query")
+        self.title("PeekAI")
         self.geometry("400x100")
         self.create_widgets()
         self.center_window()
@@ -103,14 +114,11 @@ def on_ask(event=None):
 
 # Setup GUI
 root = tk.Tk()
-root.title("AIVision")
+root.title("PeekAI")
 root.withdraw()  # Hide the main window
 
 # Register the signal handler
 signal.signal(signal.SIGINT, signal_handler)
-
-# Bind a hotkey
-# root.bind('<Control-Shift-A>', on_ask)
 
 on_ask()
 
